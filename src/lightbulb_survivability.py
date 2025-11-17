@@ -86,11 +86,51 @@ def fit_failure_probability(
     Returns:
     float, the fitted failure probability
     """
-    if observed_survivability <= 0 or observed_survivability > 1:
-        raise ValueError("Observed survivability must be in the range (0, 1].")
+    if observed_survivability < 0 or observed_survivability > 1:
+        raise ValueError("Observed survivability must be in the range [0, 1].")
+    
+    # Clamp very small values to avoid log(0) or log(negative)
+    # Use a minimum threshold to represent "essentially no survivors"
+    observed_survivability = np.clip(observed_survivability, 1e-10, 1.0)
     
     fitted_failure_probability = -np.log(observed_survivability) / lifespan_in_days
     return fitted_failure_probability
+
+def fit_failure_probability_from_series(
+    time_points: list,
+    experimental_results: list
+) -> float:
+    """
+    Fit the failure probability using multiple data points via linear regression.
+    Uses the exponential decay model: S(t) = exp(-λ*t)
+    Taking log: ln(S(t)) = -λ*t
+    
+    Parameters:
+    time_points: List of time points in days.
+    experimental_results: List of experimental survival rates.
+
+    Returns:
+    float, the fitted failure probability (λ)
+    """
+    # Filter out zero/near-zero survivability values which cause log issues
+    valid_indices = [i for i, s in enumerate(experimental_results) if s > 1e-10]
+    
+    if len(valid_indices) < 2:
+        # Fallback to single-point fitting if we don't have enough valid data
+        return fit_failure_probability(time_points[-1], experimental_results[-1])
+    
+    times = np.array([time_points[i] for i in valid_indices])
+    survivabilities = np.array([experimental_results[i] for i in valid_indices])
+    
+    # Fit: ln(S) = -λ*t
+    log_survivabilities = np.log(survivabilities)
+    
+    # Linear regression: log_S = intercept + slope*t
+    # We expect intercept ≈ 0 and slope ≈ -λ
+    coeffs = np.polyfit(times, log_survivabilities, 1)
+    fitted_lambda = -coeffs[0]  # slope is -λ
+    
+    return max(fitted_lambda, 1e-10)  # Ensure positive
 
 def plot_experiment_outcomes(
     time_points: list,
@@ -163,7 +203,7 @@ if __name__ == '__main__':
     print(f"Theoretical Survivability over {experiment_settings['lifespan_in_days']} days: {theoretical_survivability:.4f}")
     print(f"Difference: {abs(experiments_outcomes - theoretical_survivability):.4f}")
 
-    time_points = list(range(0, experiment_settings['lifespan_in_days'] + 1, 500))
+    time_points = list(range(0, experiment_settings['lifespan_in_days'] + 1, 100))
     experimental_results = [series_of_experiments(
         experiment_settings['quantity_of_runs'],
         days,
@@ -193,21 +233,7 @@ if __name__ == '__main__':
         'quantity_of_runs': 1000
     }
     
-    observed_survivability = series_of_experiments(
-        experiment_settings_2['quantity_of_runs'],
-        experiment_settings_2['lifespan_in_days'],
-        experiment_settings_2['failure_probability']
-    )
-    print(f"Observed Survivability: {observed_survivability:.4f}")
-    
-    fitted_lambda = fit_failure_probability(
-        experiment_settings_2['lifespan_in_days'],
-        observed_survivability
-    )
-    print(f"Fitted failure probability: λ = {fitted_lambda:.4f}")
-    print(f"Estimation error: {abs(fitted_lambda - unknown_failure_probability):.6f}")
-    
-    time_points_2 = list(range(0, experiment_settings_2['lifespan_in_days'] + 1, 500))
+    time_points_2 = list(range(0, experiment_settings_2['lifespan_in_days'] + 1, 100))
     experimental_results_2 = [series_of_experiments(
         experiment_settings_2['quantity_of_runs'],
         days,
@@ -215,6 +241,11 @@ if __name__ == '__main__':
     theoretical_results_2 = [get_theoretical_survivability(
         days,
         experiment_settings_2['failure_probability']) for days in time_points_2]
+    
+    # Fit using the entire time series of experimental data
+    fitted_lambda = fit_failure_probability_from_series(time_points_2, experimental_results_2)
+    print(f"Fitted failure probability: λ = {fitted_lambda:.4f}")
+    print(f"Estimation error: {abs(fitted_lambda - unknown_failure_probability):.6f}")
     
     plot_experiment_outcomes(
         time_points=time_points_2,
