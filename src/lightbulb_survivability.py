@@ -132,6 +132,23 @@ def fit_failure_probability_from_series(
     
     return max(fitted_lambda, 1e-10)  # Ensure positive
 
+def get_survival_probability(
+    days: int,
+    failure_probability: float
+) -> float:
+    """
+    Calculate the probability that a lightbulb survives at least the given number of days.
+    Using exponential decay model: P(T ≥ t) = exp(-λ*t)
+
+    Parameters:
+    days: Number of days to survive.
+    failure_probability: The failure probability per day (λ).
+
+    Returns:
+    float, the probability the lightbulb lasts at least 'days' days.
+    """
+    return get_theoretical_survivability(days, failure_probability)
+
 def plot_experiment_outcomes(
     time_points: list,
     experimental_results: list,
@@ -181,7 +198,7 @@ if __name__ == '__main__':
     
     # ============ CONFIGURATION ============
     NOISE_LEVEL = random.randint(30, 100) / 100  # Percentage noise (0.50 = ±50% of the failure rate)
-    BASE_FAILURE_RATE = 0.001  # Base failure probability for experiments
+    BASE_FAILURE_RATE = 0.0001  # Base failure probability for experiments
     DATA_POINTS_INTERVAL = 50  # Interval for time points in days
     # =======================================
     
@@ -226,6 +243,17 @@ if __name__ == '__main__':
         lifespan_in_days=experiment_settings['lifespan_in_days'],
         fitted_failure_probability=fitted_lambda
     )
+    
+    # Query: Probability of survival for given days
+    print("\n" + "=" * 70)
+    print("SURVIVAL PROBABILITY CALCULATOR")
+    print("=" * 70)
+    print(f"\nUsing fitted failure rate λ = {fitted_lambda:.4f}")
+    # Use an assumed value instead of prompting the user
+    days_query = 200
+    print(f"\nAssuming days to survive = {days_query}")
+    survival_prob = get_survival_probability(days_query, fitted_lambda)
+    print(f"\nProbability that lightbulb lasts ≥ {days_query} days: {survival_prob:.4f} ({survival_prob*100:.2f}%)")
     
     print("\n" + "=" * 70)
     print("Simulations complete!")
