@@ -179,31 +179,32 @@ if __name__ == '__main__':
     print("LIGHTBULB SURVIVABILITY SIMULATION")
     print("=" * 70)
     
-    # Experiment 1: Known failure probability
-    print("\n[Experiment 1] Known Failure Probability")
+    # ============ CONFIGURATION ============
+    NOISE_LEVEL = random.randint(30, 100) / 100  # Percentage noise (0.50 = ±50% of the failure rate)
+    BASE_FAILURE_RATE = 0.001  # Base failure probability for experiments
+    DATA_POINTS_INTERVAL = 50  # Interval for time points in days
+    # =======================================
+    
+    # Experiment: Unknown failure probability (random with noise)
+    print("\n[Experiment] Unknown Failure Probability (Random)")
     print("-" * 70)
+    
+    # Generate random failure rate with controlled noise
+    noise_amount = BASE_FAILURE_RATE * NOISE_LEVEL
+    unknown_failure_probability = round(random.uniform(
+        BASE_FAILURE_RATE - noise_amount,
+        BASE_FAILURE_RATE + noise_amount
+    ), 4)
+    print(f"Hidden failure probability: λ = {unknown_failure_probability:.4f}")
+    print(f"(Base: {BASE_FAILURE_RATE:.4f}, Noise: ±{NOISE_LEVEL*100:.0f}%)")
     
     experiment_settings = {
         'lifespan_in_days': 5000,
-        'failure_probability': 0.001,
+        'failure_probability': unknown_failure_probability,
         'quantity_of_runs': 1000
     }
     
-    experiments_outcomes = series_of_experiments(
-        experiment_settings['quantity_of_runs'],
-        experiment_settings['lifespan_in_days'],
-        experiment_settings['failure_probability']
-    )
-    print(f"Average Survivability over {experiment_settings['lifespan_in_days']} days: {experiments_outcomes:.4f}")
-
-    theoretical_survivability = get_theoretical_survivability(
-        experiment_settings['lifespan_in_days'],
-        experiment_settings['failure_probability']
-    )
-    print(f"Theoretical Survivability over {experiment_settings['lifespan_in_days']} days: {theoretical_survivability:.4f}")
-    print(f"Difference: {abs(experiments_outcomes - theoretical_survivability):.4f}")
-
-    time_points = list(range(0, experiment_settings['lifespan_in_days'] + 1, 100))
+    time_points = list(range(0, experiment_settings['lifespan_in_days'] + 1, DATA_POINTS_INTERVAL))
     experimental_results = [series_of_experiments(
         experiment_settings['quantity_of_runs'],
         days,
@@ -212,51 +213,19 @@ if __name__ == '__main__':
         days,
         experiment_settings['failure_probability']) for days in time_points]
     
+    # Fit using the entire time series of experimental data
+    fitted_lambda = fit_failure_probability_from_series(time_points, experimental_results)
+    print(f"Fitted failure probability: λ = {fitted_lambda:.4f}")
+    print(f"Estimation error: {abs(fitted_lambda - unknown_failure_probability):.6f}")
+    
     plot_experiment_outcomes(
         time_points=time_points,
         experimental_results=experimental_results,
         theoretical_results=theoretical_results,
         failure_probability=experiment_settings['failure_probability'],
-        lifespan_in_days=experiment_settings['lifespan_in_days']
-    )
-    
-    # Experiment 2: Unknown failure probability (random)
-    print("\n[Experiment 2] Unknown Failure Probability (Random)")
-    print("-" * 70)
-    
-    unknown_failure_probability = round(random.uniform(0.0005, 0.002), 4)
-    print(f"Hidden failure probability: λ = {unknown_failure_probability:.4f}")
-    
-    experiment_settings_2 = {
-        'lifespan_in_days': 5000,
-        'failure_probability': unknown_failure_probability,
-        'quantity_of_runs': 1000
-    }
-    
-    time_points_2 = list(range(0, experiment_settings_2['lifespan_in_days'] + 1, 100))
-    experimental_results_2 = [series_of_experiments(
-        experiment_settings_2['quantity_of_runs'],
-        days,
-        experiment_settings_2['failure_probability']) for days in time_points_2]
-    theoretical_results_2 = [get_theoretical_survivability(
-        days,
-        experiment_settings_2['failure_probability']) for days in time_points_2]
-    
-    # Fit using the entire time series of experimental data
-    fitted_lambda = fit_failure_probability_from_series(time_points_2, experimental_results_2)
-    print(f"Fitted failure probability: λ = {fitted_lambda:.4f}")
-    print(f"Estimation error: {abs(fitted_lambda - unknown_failure_probability):.6f}")
-    
-    plot_experiment_outcomes(
-        time_points=time_points_2,
-        experimental_results=experimental_results_2,
-        theoretical_results=theoretical_results_2,
-        failure_probability=experiment_settings_2['failure_probability'],
-        lifespan_in_days=experiment_settings_2['lifespan_in_days'],
+        lifespan_in_days=experiment_settings['lifespan_in_days'],
         fitted_failure_probability=fitted_lambda
     )
-    plt.savefig('lightbulb_survivability_plot_fitted.png', dpi=300)
-    print("✓ Fitted plot saved as 'lightbulb_survivability_plot_fitted.png'")
     
     print("\n" + "=" * 70)
     print("Simulations complete!")
