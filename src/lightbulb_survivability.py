@@ -188,8 +188,9 @@ def plot_experiment_outcomes(
     plt.legend(fontsize=11, loc='best')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig('lightbulb_survivability_plot.png', dpi=300)
-    print("✓ Plot saved as 'lightbulb_survivability_plot.png'")
+    filename = './assets/lightbulb_survivability_plot.png'
+    plt.savefig(filename, dpi=300)
+    print(f"✓ Plot saved as '{filename}'")
 
 if __name__ == '__main__':
     print("=" * 70)
