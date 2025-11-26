@@ -9,6 +9,11 @@ __author__ = "Alfredo Espinoza"
 import random
 import matplotlib.pyplot as plt
 
+# Output file
+output_file = open('./assets/hopfield_test_evidence.txt', 'w')
+
+output_file.write("** Patrones almacenados:\n")
+
 # Mostrar matrices 5 x 7
 def mostrar(patron):
     """
@@ -19,8 +24,8 @@ def mostrar(patron):
         fin = inicio + 5
         particion = patron[inicio:fin]
         linea = ["██" if x == 1 else "  " for x in particion]
-        print("".join(linea))
-    print()
+        output_file.write("".join(linea) + "\n")
+    output_file.write("\n")
 
 # Construcción de la matriz de memoria
 
@@ -92,7 +97,11 @@ for i in lista_de_patrones:
   mostrar(i)
 
 memoria = crear_memoria(lista_de_patrones)
-for i in memoria: print(i)
+# Guardar la memoria en un archivo de texto
+output_file.write("** Matriz de Memoria:\n")
+for i in memoria:
+    output_file.write(str(i) + "\n")
+output_file.write("\n")
 
 # Recuperación
 
@@ -120,17 +129,17 @@ señal_corrupta = [ 1,-1, 1,-1,-1,
                    1,-1,-1,-1, 1,
                    1,-1,-1,-1,-1]
 
-print("Señal Corrupta")
+output_file.write("Señal Corrupta\n")
 mostrar(señal_corrupta)
 señal_recuperada = recuperar_patron(memoria,señal_corrupta,lista_de_patrones,100)
 mostrar(señal_recuperada)
-print("Señal Recuperada")
+output_file.write("Señal Recuperada\n")
 
 def prueba(memoria, lista_de_patrones, número_de_veces_a_alterar, número_de_ciclos_a_iterar, imprimir, elegido):
     copia_lista_de_patrones = list.copy(lista_de_patrones)
     patrón = lista_de_patrones[elegido]
     if imprimir != "no imprimir":
-        print("Patrón elegido aleatoriamente")
+        output_file.write("Patrón elegido aleatoriamente\n")
         mostrar(patrón)
 
     patrón_corrupto = list.copy(patrón)
@@ -138,24 +147,24 @@ def prueba(memoria, lista_de_patrones, número_de_veces_a_alterar, número_de_ci
         índice_de_elemento_elegido_para_alterar = random.choice(list(range(len(patrón))))
         patrón_corrupto[índice_de_elemento_elegido_para_alterar] = random.choice([-1, 1])
     if imprimir != "no imprimir":
-        print("Patrón elegido aleatoriamente - corrupto")
+        output_file.write("Patrón elegido aleatoriamente - corrupto\n")
         mostrar(patrón_corrupto)
 
     patrón_recuperado = recuperar_patron(memoria, patrón_corrupto, copia_lista_de_patrones, número_de_ciclos_a_iterar)
     if imprimir != "no imprimir":
-        print("Patrón elegido aleatoriamente - recuperado")
+        output_file.write("Patrón elegido aleatoriamente - recuperado\n")
         mostrar(patrón_recuperado)
 
     cantidad_de_aciertos = sum(1 for i, j in zip(patrón, patrón_recuperado) if i == j)
     porcentaje_de_aciertos = cantidad_de_aciertos * 100 / len(patrón)
 
     if imprimir != "no imprimir":
-        print(f"Exactitud: {porcentaje_de_aciertos}%")
+        output_file.write(f"Exactitud: {porcentaje_de_aciertos}%\n")
     return porcentaje_de_aciertos
 
 prueba(memoria, lista_de_patrones, 50, 100, "imprimir", 0)
 
-for _ in range(200):
+for _ in range(50):
     desempeno = [prueba(memoria, lista_de_patrones, i, 100, False, 0) for i in range(0, 51, 5)]
     x = [i for i in range(0, 51, 5)]
     plt.plot(x, desempeno)
@@ -163,4 +172,6 @@ plt.xlim(0, 50)
 plt.title("Patrón: A")
 plt.xlabel("Nivel de Ruido")
 plt.ylabel("Exactitud (%)")
-plt.show()
+plt.savefig('./assets/hopfield_performance.png')
+output_file.write("\nGráfica guardada en './assets/hopfield_performance.png'\n")
+output_file.close()

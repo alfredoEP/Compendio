@@ -15,3 +15,6 @@ Shows how simple recursive rules generate complex fractal structures.
 
 ### Hopfield Associative Memory 🧠🔍
 Evidence of the Hopfield network's ability to store and retrieve patterns, even with noise up to a limit.
+
+### One Clause At a Time on Cesarean Labor 🏥👶
+Data mining method to identify key factors influencing cesarean deliveries outcomes.
