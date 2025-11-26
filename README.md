@@ -1,5 +1,6 @@
 # Compendio
-Here I save atomic code
+Here I save atomic code.  
+Evidence in **assets/** of various concepts in computer science, mathematics, and data science.
 
 
 ## Scripts
