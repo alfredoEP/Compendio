@@ -1,6 +1,7 @@
 """
 hop.newbie.py: This script implements a Hopfield associative memory for pattern storage and retrieval.
 It demonstrates pattern corruption, recovery, and performance visualization.
+My first attempt at Hopfield Networks (circa 2020)
 """
 
 __author__ = "Alfredo Espinoza"
