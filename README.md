@@ -19,3 +19,7 @@ Evidence of the Hopfield network's ability to store and retrieve patterns, even 
 
 ### One Clause At a Time on Cesarean Labor 🏥👶
 Data mining method to identify key factors influencing cesarean deliveries outcomes.
+
+
+### Forest Fire Model 🔥🌲
+Forest fire cellular automata model re-implemented in Python with cluster size and size histogram analysis.
