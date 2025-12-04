@@ -1,0 +1,6 @@
+[submodule "CeciPani/Forest_fire_models"]
+	path = external/CeciPani/Forest_fire_models
+	url = https://github.com/CeciPani/Forest_fire_models.git
+[submodule "external/ebgolstein"]
+	path = external/ebgolstein
+	url = https://github.com/ebgoldstein/Forest-Fire.git
